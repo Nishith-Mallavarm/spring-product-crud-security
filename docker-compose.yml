@@ -1,0 +1,22 @@
+
+services:
+  ecommerce-app:
+    ports :
+        - "8080:8080"
+    image:
+      ecommerce-app
+    environment:
+        - DB2_HOST=mysql
+        - DB2_PORT=3306
+    volumes:
+      - ecommerce-app-data:/ecommerce-app
+    networks:
+      - dockerdemo_default
+
+volumes:
+  ecommerce-app-data:
+
+networks:
+    dockerdemo_default:
+      external: true
+      name: dockerdemo_default
