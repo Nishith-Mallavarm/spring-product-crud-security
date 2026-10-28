@@ -25,22 +25,30 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = request.getHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);
+
+        if (token == null || !token.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
-        String username=jwtUtil.parseToken(token);
-        Users users=usersRepository.findByUsername(username);
-        UsernamePasswordAuthenticationToken  authentication = new UsernamePasswordAuthenticationToken(users,null,users.getAuthorities());
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        filterChain.doFilter(request,response);
+
+        token = token.substring(7);
+        String username = jwtUtil.parseToken(token);
+        Users users = usersRepository.findByUsername(username);
+
+        if (users != null) {
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(users, null, users.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
+
+        filterChain.doFilter(request, response);
     }
 
+    @Override
     public boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        if(path.equals("/generate-token")){
+        if (path.equals("/generate-token") || path.equals("/lap")) {
             return true;
         }
         return false;
     }
-
 }
